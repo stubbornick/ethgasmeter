@@ -6,9 +6,9 @@ import { inspect } from 'util';
 export class TelegramService {
   private readonly logger = new Logger(TelegramService.name);
 
-  private readonly token = process.env.TELEGRAM_BOT_TOKEN
+  private readonly token = process.env.TELEGRAM_BOT_TOKEN;
 
-  private readonly bot = new Telegraf(this.token)
+  private readonly bot = new Telegraf(this.token);
 
   public async onModuleInit() {
     this.bot.start((ctx) => {
@@ -19,6 +19,8 @@ export class TelegramService {
     this.bot.command('hello', (ctx) => {
       ctx.reply('Hello, World!');
     });
+
+    this.bot.catch(this.handleError.bind(this));
 
     await this.bot.launch();
 
