@@ -4,17 +4,13 @@ import { inspect } from 'util';
 
 import { GasInfo } from './gas-info.interface';
 
-const api = axios.create({
-  baseURL: 'https://api.etherscan.io/api',
-});
-
-const gweiToEth = 0.000000001;
-
 interface EtherscanApiResponse {
   status: string,
   message: string,
   result: any,
 }
+
+export type InfoUpdateHandler = (info: GasInfo) => void;
 
 const processApiResponse = (response: AxiosResponse<EtherscanApiResponse>) => {
   if (response.status === 200) {
@@ -29,6 +25,12 @@ const processApiResponse = (response: AxiosResponse<EtherscanApiResponse>) => {
   );
 };
 
+const api = axios.create({
+  baseURL: 'https://api.etherscan.io/api',
+});
+
+const gweiToEth = 0.000000001;
+
 @Injectable()
 export class GasService {
   private readonly logger = new Logger(GasService.name);
@@ -40,6 +42,8 @@ export class GasService {
   private info: GasInfo;
 
   private updateTimeout: NodeJS.Timeout;
+
+  private infoUpdateHandlers = new Set<InfoUpdateHandler>()
 
   public onModuleInit() {
     if (!this.etherscanApiKey || !this.updateDelay || Number.isNaN(this.updateDelay)) {
@@ -55,6 +59,14 @@ export class GasService {
 
   public getGasPriceInUsd(): number {
     return this.info.gasPriceUsd;
+  }
+
+  public addHandler(handler: InfoUpdateHandler) {
+    this.infoUpdateHandlers.add(handler);
+  }
+
+  public removeHandler(handler: InfoUpdateHandler) {
+    this.infoUpdateHandlers.delete(handler);
   }
 
   private updateInfo() {
@@ -95,7 +107,9 @@ export class GasService {
   private handleInfoUpdate(gasPrice: number, ethUsd: number) {
     const gasPriceUsd = gasPrice * ethUsd * gweiToEth;
     this.info = { gasPrice, ethUsd, gasPriceUsd };
+
     // this.logger.debug(`New info: ${JSON.stringify(this.info, null, 2)}`);
+    this.infoUpdateHandlers.forEach((handler) => handler({ ...this.info }));
   }
 
   private handleError(error: any) {
