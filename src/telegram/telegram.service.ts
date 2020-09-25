@@ -12,6 +12,7 @@ import { UserThresholdEntity } from './user-threshold.entity';
 const helpText = `Available commands:
   /help - show this text,
   /gasprice - get current gas price in USD,
+  /getthreshold - show your current threshold,
   /setthreshold <threshold> - set gas price threshold in USD for notifications,
   /stop - stop notifications.`;
 
@@ -44,6 +45,7 @@ export class TelegramService {
     });
 
     this.bot.command('gasprice', this.getGasPriceCommand.bind(this));
+    this.bot.command('getthreshold', this.getThresholdCommand.bind(this));
     this.bot.command('setthreshold', this.setThresholdCommand.bind(this));
     this.bot.command('stop', this.stopCommand.bind(this));
 
@@ -65,6 +67,10 @@ export class TelegramService {
 
   public handleError(error: any) {
     this.logger.error(`Error occured: ${inspect(error)}`);
+
+    if (error.code === 409) {
+      process.exit(1);
+    }
   }
 
   public sendMessage(userId: number | string, message: string) {
@@ -75,6 +81,15 @@ export class TelegramService {
     ctx.reply(`Gas price: ${this.gasService.getGasPriceInUsd()} $`);
   }
 
+  private async getThresholdCommand(ctx: TelegrafContext) {
+    const userTheshold = await this.getUserThresholdByTelegrafContext(ctx);
+    if (!userTheshold || !userTheshold.threshold) {
+      return ctx.reply('You have no threshold set');
+    }
+
+    return ctx.reply(`Your threshold is set to ${userTheshold.threshold}`);
+  }
+
   private async setThresholdCommand(ctx: TelegrafContext): Promise<void> {
     const threshold = Number.parseFloat(ctx.message.text.split(' ')[1]);
 
@@ -82,18 +97,18 @@ export class TelegramService {
       return ctx.reply('Usage:\n/setthreshold 0.0001');
     }
 
-    const userTelegramId = getUserId(ctx);
-    const user = await this.userThresholdRepository.findOne(userTelegramId);
+    const userTheshold = await this.getUserThresholdByTelegrafContext(ctx);
 
-    if (!user) {
+    if (!userTheshold) {
       const newUser = new UserThresholdEntity();
+      const userTelegramId = getUserId(ctx);
       newUser.userTelegramId = userTelegramId;
       newUser.threshold = threshold;
       await this.userThresholdRepository.save(newUser);
     } else {
-      user.threshold = threshold;
-      user.isNotified = false;
-      await this.userThresholdRepository.save(user);
+      userTheshold.threshold = threshold;
+      userTheshold.isNotified = false;
+      await this.userThresholdRepository.save(userTheshold);
     }
 
     return ctx.reply(`Threshold for you is set to ${threshold} $`);
@@ -145,5 +160,10 @@ export class TelegramService {
         return user;
       }),
     );
+  }
+
+  private getUserThresholdByTelegrafContext(ctx: TelegrafContext) {
+    const userTelegramId = getUserId(ctx);
+    return this.userThresholdRepository.findOne(userTelegramId);
   }
 }
