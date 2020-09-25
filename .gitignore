@@ -5,6 +5,9 @@
 # Configs
 .env
 
+# Data
+/data
+
 # Logs
 logs
 *.log

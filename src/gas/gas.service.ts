@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { inspect } from 'util';
 
+import { GasInfo } from './gas-info.interface';
+
 const api = axios.create({
   baseURL: 'https://api.etherscan.io/api',
 });
@@ -12,12 +14,6 @@ interface EtherscanApiResponse {
   status: string,
   message: string,
   result: any,
-}
-
-interface GasInfo {
-  gasPrice: number,
-  ethUsd: number,
-  gasPriceUsd: number,
 }
 
 const processApiResponse = (response: AxiosResponse<EtherscanApiResponse>) => {
@@ -99,7 +95,7 @@ export class GasService {
   private handleInfoUpdate(gasPrice: number, ethUsd: number) {
     const gasPriceUsd = gasPrice * ethUsd * gweiToEth;
     this.info = { gasPrice, ethUsd, gasPriceUsd };
-    this.logger.debug(`New info: ${JSON.stringify(this.info, null, 2)}`);
+    // this.logger.debug(`New info: ${JSON.stringify(this.info, null, 2)}`);
   }
 
   private handleError(error: any) {
