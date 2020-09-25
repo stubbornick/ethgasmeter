@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: 'https://api.etherscan.io/api',
 });
 
+const gweiToEth = 0.000000001;
+
 interface EtherscanApiResponse {
   status: string,
   message: string,
@@ -15,7 +17,7 @@ interface EtherscanApiResponse {
 interface GasInfo {
   gasPrice: number,
   ethUsd: number,
-  // gasPriceUsd: number,
+  gasPriceUsd: number,
 }
 
 const processApiResponse = (response: AxiosResponse<EtherscanApiResponse>) => {
@@ -48,15 +50,19 @@ export class GasService {
       throw new Error('Config is not provided or incorrect');
     }
 
-    this.updateInfo();
+    return this.updateInfo();
   }
 
   public onModuleDestroy() {
     clearTimeout(this.updateTimeout);
   }
 
+  public getGasPriceInUsd(): number {
+    return this.info.gasPriceUsd;
+  }
+
   private updateInfo() {
-    Promise.all([
+    return Promise.all([
       api.get<EtherscanApiResponse>('', {
         params: {
           module: 'gastracker',
@@ -65,7 +71,7 @@ export class GasService {
         },
       }).then((result) => {
         const data = processApiResponse(result);
-        return Number.parseInt(data.SafeGasPrice, 10);
+        return Number.parseInt(data.ProposeGasPrice, 10);
       }),
       api.get<EtherscanApiResponse>('', {
         params: {
@@ -91,8 +97,9 @@ export class GasService {
   }
 
   private handleInfoUpdate(gasPrice: number, ethUsd: number) {
-    this.info = { gasPrice, ethUsd };
-    this.logger.log(`New info: ${JSON.stringify(this.info, null, 2)}`);
+    const gasPriceUsd = gasPrice * ethUsd * gweiToEth;
+    this.info = { gasPrice, ethUsd, gasPriceUsd };
+    this.logger.debug(`New info: ${JSON.stringify(this.info, null, 2)}`);
   }
 
   private handleError(error: any) {
