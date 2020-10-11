@@ -82,12 +82,12 @@ export class TelegramService {
   }
 
   private async getThresholdCommand(ctx: TelegrafContext) {
-    const userTheshold = await this.getUserThresholdByTelegrafContext(ctx);
-    if (!userTheshold || !userTheshold.threshold) {
+    const userThreshold = await this.getUserThresholdByTelegrafContext(ctx);
+    if (!userThreshold || !userThreshold.threshold) {
       return ctx.reply('You have no threshold set');
     }
 
-    return ctx.reply(`Your threshold is set to ${userTheshold.threshold}`);
+    return ctx.reply(`Your threshold is set to ${userThreshold.threshold}`);
   }
 
   private async setThresholdCommand(ctx: TelegrafContext): Promise<void> {
