@@ -20,12 +20,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^7.6.1",
+    "@nestjs/common": "^7.6.13",
     "@nestjs/config": "^0.5.0",
     "@nestjs/core": "^7.6.1",
     "@nestjs/platform-express": "^7.6.1",
     "@nestjs/typeorm": "^7.1.5",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
@@ -36,7 +36,7 @@
     "typeorm": "^0.2.29"
   },
   "devDependencies": {
-    "@nestjs/cli": "^6.13.2",
+    "@nestjs/cli": "^7.5.6",
     "@nestjs/schematics": "^6.8.1",
     "@nestjs/testing": "^6.10.14",
     "@types/dotenv": "^8.2.0",
@@ -54,7 +54,7 @@
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
     "supertest": "^4.0.2",
-    "ts-jest": "25.2.0",
+    "ts-jest": "^26.5.3",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.6.0",
     "tsconfig-paths": "^3.9.0",
